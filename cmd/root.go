@@ -29,10 +29,27 @@ func Execute() {
 	}
 }
 
+var startCmd = &cobra.Command{
+	Use:   "start",
+	Short: "Start the Visions Core services (cron, etc)",
+	Long:  `Start all background services and schedulers for Visions Core.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if Manager == nil {
+			cmd.PrintErrln("Error: Manager is not initialized.")
+			os.Exit(1)
+		}
+		Manager.Start()
+		cmd.Println("Visions Core services started. Press Ctrl+C to exit.")
+		select {} // Block forever
+	},
+}
+
 func init() {
 	// Define persistent flags (global for all commands) here if needed:
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.visions-core.yaml)")
 
 	// Remove example toggle flag unless you plan to use it:
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.AddCommand(startCmd)
 }
