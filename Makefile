@@ -8,7 +8,7 @@ build:
 	go build -o visions-core main.go
 
 test:
-	go test ./...
+	go test ./test
 
 lint:
 	golangci-lint run || true

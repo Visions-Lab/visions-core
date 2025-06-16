@@ -47,6 +47,3 @@ test_cronjobs.json
 # Ignore wiki and docs build artifacts
 wiki/
 docs/
-
-# Ignore built binaries
-visions-core.exe
