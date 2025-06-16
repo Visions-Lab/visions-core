@@ -5,7 +5,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/Visions-Lab/visions-core/pkg/cronmgr"
 
 	"github.com/spf13/cobra"
 )
@@ -36,18 +39,25 @@ var cronAddCmd = &cobra.Command{
 	Use:     "add",
 	Short:   "Add a new cron task",
 	Example: `visions-core cron add --name mytask --group default --spec "*/5 * * * *" --exec "echo hello" --shell`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskName == "" || taskGroup == "" || taskSpec == "" || taskCommand == "" {
-			fmt.Fprintln(os.Stderr, "Error: You must provide --name, --group, --spec, and --exec.")
-			os.Exit(1)
+			logrus.Error("You must provide --name, --group, --spec, and --exec.")
+			return fmt.Errorf("invalid arguments: missing required flags")
 		}
-		// Add or update the cron task using the global Manager
-		err := Manager.AddTask(taskName, taskGroup, taskSpec, taskCommand, taskShell)
+		task := cronmgr.CronTask{
+			Name:    taskName,
+			Group:   taskGroup,
+			Spec:    taskSpec,
+			Command: taskCommand,
+			Shell:   taskShell,
+		}
+		err := Manager.AddTask(task)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to add/update task: %v\n", err)
-			os.Exit(1)
+			logrus.Errorf("Failed to add/update task: %v", err)
+			return err
 		}
-		fmt.Println("Task added or updated successfully!")
+		logrus.Info("Task added or updated successfully!")
+		return nil
 	},
 }
 
@@ -71,10 +81,10 @@ var cronListCmd = &cobra.Command{
 			}
 		}
 		if len(tasks) == 0 {
-			fmt.Println("No cron tasks found.")
+			logrus.Info("No cron tasks found.")
 			return
 		}
-		fmt.Println("Name\tGroup\tSpec\tShell\tCommand")
+		logrus.Info("Name\tGroup\tSpec\tShell\tCommand")
 		for _, t := range tasks {
 			task := t.(interface {
 				Name() string
@@ -83,7 +93,7 @@ var cronListCmd = &cobra.Command{
 				Shell() bool
 				Command() string
 			})
-			fmt.Printf("%s\t%s\t%s\t%v\t%s\n", task.Name(), task.Group(), task.Spec(), task.Shell(), task.Command())
+			logrus.Infof("%s\t%s\t%s\t%v\t%s", task.Name(), task.Group(), task.Spec(), task.Shell(), task.Command())
 		}
 	},
 }
@@ -93,21 +103,22 @@ var cronDelCmd = &cobra.Command{
 	Use:   "del",
 	Short: "Delete cron tasks by name or group",
 	Long:  `Delete a cron task by name, or delete all tasks in a group.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		group, _ := cmd.Flags().GetString("group")
 		if name == "" && group == "" {
-			fmt.Fprintln(os.Stderr, "Error: Provide --name or --group to delete.")
-			os.Exit(1)
+			logrus.Error("Provide --name or --group to delete.")
+			return fmt.Errorf("invalid arguments: must provide --name or --group")
 		}
 		if name != "" {
 			Manager.RemoveTask(name)
-			fmt.Printf("Task '%s' deleted (if it existed).\n", name)
+			logrus.Infof("Task '%s' deleted (if it existed).", name)
 		}
 		if group != "" {
 			Manager.RemoveGroup(group)
-			fmt.Printf("All tasks in group '%s' deleted (if any existed).\n", group)
+			logrus.Infof("All tasks in group '%s' deleted (if any existed).", group)
 		}
+		return nil
 	},
 }
 

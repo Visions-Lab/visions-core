@@ -1,9 +1,13 @@
+/*
+Copyright © 2025 Visions Lab
+*/
 package cronmgr
 
 import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/robfig/cron/v3"
@@ -53,28 +57,24 @@ func (m *CronManager) Start() {
 }
 
 // AddTask adds or updates a cron task by name. If a task with the same name exists, it is replaced.
-// The command is executed according to the spec, optionally in a shell.
-func (m *CronManager) AddTask(name, group, spec, command string, shell bool) error {
+func (m *CronManager) AddTask(task CronTask) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	// Remove existing task if present
-	if t, ok := m.tasks[name]; ok {
+	if t, ok := m.tasks[task.Name]; ok {
 		m.cron.Remove(t.ID)
 	}
-	id, err := m.cron.AddFunc(spec, func() {
-		if shell {
-			cmd := exec.Command("sh", "-c", command)
-			cmd.Run()
-		} else {
-			cmd := exec.Command(command)
+	id, err := m.cron.AddFunc(task.Spec, func() {
+		cmd := buildCommand(task)
+		if cmd != nil {
 			cmd.Run()
 		}
 	})
 	if err != nil {
 		return err
 	}
-	task := CronTask{ID: id, Name: name, Group: group, Spec: spec, Command: command, Shell: shell}
-	m.tasks[name] = task
+	task.ID = id
+	m.tasks[task.Name] = task
 	m.saveTasksLocked()
 	return nil
 }
@@ -142,6 +142,18 @@ func (m *CronManager) saveTasksLocked() {
 	}
 }
 
+// buildCommand creates an exec.Cmd based on the task's shell flag and command string.
+func buildCommand(t CronTask) *exec.Cmd {
+	if t.Shell {
+		return exec.Command("sh", "-c", t.Command)
+	}
+	parts := strings.Fields(t.Command)
+	if len(parts) > 0 {
+		return exec.Command(parts[0], parts[1:]...)
+	}
+	return nil
+}
+
 // LoadTasks loads all tasks from the persistent storage file and registers them with the scheduler.
 func (m *CronManager) LoadTasks() {
 	m.mu.Lock()
@@ -157,11 +169,8 @@ func (m *CronManager) LoadTasks() {
 	}
 	for _, t := range tasks {
 		id, err := m.cron.AddFunc(t.Spec, func() {
-			if t.Shell {
-				cmd := exec.Command("sh", "-c", t.Command)
-				cmd.Run()
-			} else {
-				cmd := exec.Command(t.Command)
+			cmd := buildCommand(t)
+			if cmd != nil {
 				cmd.Run()
 			}
 		})

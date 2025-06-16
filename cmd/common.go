@@ -1,3 +1,6 @@
+/*
+Copyright © 2025 Visions Lab
+*/
 package cmd
 
 import "github.com/Visions-Lab/visions-core/pkg/cronmgr"

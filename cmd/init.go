@@ -4,8 +4,7 @@ Copyright © 2025 Visions Lab
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ var initCmd = &cobra.Command{
 	Short: "Initialize a new Visions project",
 	Long:  `Set up the initial structure and configuration for a new Visions project.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Initialized a new Visions project.")
+		logrus.Info("Initialized a new Visions project.")
 	},
 }
 

@@ -1,3 +1,6 @@
+/*
+Copyright © 2025 Visions Lab
+*/
 package cronmgr_test
 
 import (
@@ -12,7 +15,13 @@ func TestAddListRemoveTask(t *testing.T) {
 	mgr := cronmgr.NewCronManagerWithFile("test_cronjobs.json")
 	defer os.Remove("test_cronjobs.json")
 
-	err := mgr.AddTask("t1", "g1", "* * * * *", "echo hi", true)
+	err := mgr.AddTask(cronmgr.CronTask{
+		Name:    "t1",
+		Group:   "g1",
+		Spec:    "* * * * *",
+		Command: "echo hi",
+		Shell:   true,
+	})
 	if err != nil {
 		t.Fatalf("AddTask failed: %v", err)
 	}
@@ -30,7 +39,13 @@ func TestAddListRemoveTask(t *testing.T) {
 func TestPersistence(t *testing.T) {
 	os.Remove("test_cronjobs.json")
 	mgr := cronmgr.NewCronManagerWithFile("test_cronjobs.json")
-	mgr.AddTask("t2", "g2", "* * * * *", "echo hi", true)
+	mgr.AddTask(cronmgr.CronTask{
+		Name:    "t2",
+		Group:   "g2",
+		Spec:    "* * * * *",
+		Command: "echo hi",
+		Shell:   true,
+	})
 	mgr = nil
 
 	mgr2 := cronmgr.NewCronManagerWithFile("test_cronjobs.json")
