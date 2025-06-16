@@ -1,0 +1,52 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output folders
+bin/
+obj/
+
+# Go build cache
+*.out
+
+# Dependency directories (vendor/ is used in some Go projects)
+vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+
+# OS files
+*.log
+
+# Test and coverage
+*.coverprofile
+*.testresult
+coverage.out
+
+# Persistent cron jobs file
+cronjobs.json
+
+# Example/test artifacts
+test_cronjobs.json
+
+# Misc
+*.old
+*.orig
+*.rej
+
+# Ignore wiki and docs build artifacts
+wiki/
+docs/
+
+# Ignore built binaries
+visions-core.exe

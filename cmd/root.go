@@ -9,19 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd is the base command for the CLI, used when no subcommands are provided.
 var rootCmd = &cobra.Command{
 	Use:   "visions-core",
 	Short: "Modular core framework for automation and integration",
 	Long: `Visions Core is the modular, resource-efficient foundation 
 for automation, integration, and workflow tools in the Visions Lab ecosystem.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute runs the root command and all subcommands. Exits with code 1 on error.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -29,6 +25,7 @@ func Execute() {
 	}
 }
 
+// startCmd starts all background services (cron, etc) and blocks until interrupted.
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the Visions Core services (cron, etc)",
@@ -44,8 +41,9 @@ var startCmd = &cobra.Command{
 	},
 }
 
+// init registers the start command and any persistent flags with the root command.
 func init() {
-	// Define persistent flags (global for all commands) here if needed:
+	// You can define persistent flags (global for all commands) here if needed:
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.visions-core.yaml)")
 
 	// Remove example toggle flag unless you plan to use it:
